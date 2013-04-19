@@ -1,0 +1,89 @@
+<?php
+$plugin_info = array(
+    'pi_name' => 'Jiggabyte Format',
+    'pi_version' => '1.0',
+    'pi_author' => 'James McFall',
+    'pi_author_url' => 'http://mcfall.geek.nz/',
+    'pi_description' => 'The standard EE file field type outputs the file
+                         size in bytes, which is useless to non-technical
+                         people. This plugin converts byte values into human
+                         readable B/MB/GB etc values.',
+    'pi_usage' => Jiggabyte_format::usage()
+);
+
+class Jiggabyte_format {
+
+    /**
+     * Constructor
+     */
+    public function __construct() {
+        $this->EE = & get_instance();
+
+        # Get in the template tag data
+        $bytes = $this->EE->TMPL->tagdata;
+
+        # Decimal places parameter (ensure 0 is a valid option and not interperated as false)
+        $decimal_places = $this->EE->TMPL->fetch_param('dec');
+        $decimal_places = isset($decimal_places) ? trim($decimal_places) : 2;
+
+        # Return the formatted file size
+        $this->return_data = $this->_parse_file_size($bytes, $decimal_places);
+    }
+
+    /**
+     * Parse the file size passed in in bytes.
+     *
+     * @param <int> $bytes
+     * @param <int> $dp - The decimal points you want returned in the result
+     * @return <string> File size in a sensible format.
+     */
+    private function _parse_file_size($bytes, $dp = 2) {
+        if ($bytes >= 1073741824) {
+            $bytes = number_format($bytes / 1073741824, $dp) . ' GB';
+        } elseif ($bytes >= 1048576) {
+            $bytes = number_format($bytes / 1048576, $dp) . ' MB';
+        } elseif ($bytes >= 1024) {
+            $bytes = number_format($bytes / 1024, $dp) . ' KB';
+        } elseif ($bytes > 1) {
+            $bytes = $bytes . ' bytes';
+        } elseif ($bytes == 1) {
+            $bytes = $bytes . ' byte';
+        } else {
+            $bytes = '0 bytes';
+        }
+
+        return $bytes;
+    }
+
+    /**
+     * Usage
+     *
+     * This function describes how the plugin is used.
+     *
+     * @access  public
+     * @return  string
+     */
+    public static function usage() {
+        ob_start();
+        ?>
+
+        This plugin is very easy to use and it only has one parameter. Simply wrap a file size (in bytes) with the jiggabyte_format tags and (optionally) supply a "dec" parameter which is an integer value of the number of decimal places you want. This defaults to 2dp.
+
+        {download_file}
+        <a href="{url}" target="_blank">
+            <strong>{file_title}</strong>
+            <span>{exp:jiggabyte_format dec="0"}{file_size}{/exp:jiggabyte_format}</span>
+        </a>
+        {/download_file}
+
+        This will automatically return the file size in MB, GB or whatever is appropriate.
+
+        <?php
+        $buffer = ob_get_contents();
+        ob_end_clean();
+
+        return $buffer;
+    }
+
+}
+?>
