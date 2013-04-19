@@ -24,7 +24,7 @@ class Jiggabyte_format {
 
         # Decimal places parameter (ensure 0 is a valid option and not interperated as false)
         $decimal_places = $this->EE->TMPL->fetch_param('dec');
-        $decimal_places = isset($decimal_places) ? trim($decimal_places) : 2;
+        $decimal_places = isset($decimal_places) && is_numeric($decimal_places) ? trim($decimal_places) : 2;
 
         # Return the formatted file size
         $this->return_data = $this->_parse_file_size($bytes, $decimal_places);
